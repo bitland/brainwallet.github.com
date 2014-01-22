@@ -83,10 +83,11 @@
     }
 
     function getDER(eckey, compressed) {
-        var curve = getSECCurveByName("secp256k1");
+        //var curve = getSECCurveByName("secp256k1");
+        var curve = getSECCurveByName("secp256r1");
         var _p = curve.getCurve().getQ().toByteArrayUnsigned();
         var _r = curve.getN().toByteArrayUnsigned();
-        var encoded_oid = [0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x01, 0x01];
+        var encoded_oid = [0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07];
 
         var secret = integerToBytes(eckey.priv, 32);
         var encoded_gxgy = getEncoded(curve.getG(), compressed);
@@ -95,26 +96,11 @@
         return encode_sequence(
             encode_integer(1),
             encode_octet_string(secret),
-            encode_constructed(0,
-                encode_sequence(
-                    encode_integer(1),
-                    encode_sequence(
-                        encoded_oid, //encode_oid(*(1, 2, 840, 10045, 1, 1)), //TODO
-                        encode_integer([0].concat(_p))
-                    ),
-                    encode_sequence(
-                        encode_octet_string([0]),
-                        encode_octet_string([7])
-                    ),
-                    encode_octet_string(encoded_gxgy),
-                    encode_integer([0].concat(_r)),
-                    encode_integer(1)
-                )
-            ),
+            encode_constructed(0, encoded_oid),
             encode_constructed(1, 
-                encode_bitstring([0].concat(encoded_pub))
+                    encode_bitstring([0].concat(_r).concat(encoded_pub))
             )
-        );
+        )
     }
 
     function pad(str, len, ch) {
@@ -194,7 +180,7 @@
         gen_eckey = eckey;
 
         try {
-            var curve = getSECCurveByName("secp256k1");
+            var curve = getSECCurveByName("secp256r1");
             gen_pt = curve.getG().multiply(eckey.priv);
             gen_eckey.pub = getEncoded(gen_pt, gen_compressed);
             gen_eckey.pubKeyHash = Bitcoin.Util.sha256ripe160(gen_eckey.pub);
@@ -871,7 +857,7 @@
                 compressed = true;
             }
             var eckey = new Bitcoin.ECKey(payload);
-            var curve = getSECCurveByName("secp256k1");
+            var curve = getSECCurveByName("secp256r1");
             var pt = curve.getG().multiply(eckey.priv);
             eckey.pub = getEncoded(pt, compressed);
             eckey.pubKeyHash = Bitcoin.Util.sha256ripe160(eckey.pub);
@@ -1209,7 +1195,7 @@
                 compressed = true;
             }
             eckey = new Bitcoin.ECKey(payload);
-            var curve = getSECCurveByName("secp256k1");
+            var curve = getSECCurveByName("secp256r1");
             var pt = curve.getG().multiply(eckey.priv);
             eckey.pub = getEncoded(pt, compressed);
             eckey.pubKeyHash = Bitcoin.Util.sha256ripe160(eckey.pub);
