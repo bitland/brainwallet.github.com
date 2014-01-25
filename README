@@ -1,6 +1,6 @@
 Cannibalizing the Bitcoin Brainwallet Generator to do something equivalent with SSH keys.
 
-Original project:
-JavaScript Client-Side Bitcoin Address Generator
+Used wisely, it can be better than SRP/PAKE.  Used poorly, you're going to get owned.
 
-http://brainwallet.github.com
+Original project:
+JavaScript Client-Side Bitcoin Address Generator (http://brainwallet.github.com)
