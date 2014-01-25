@@ -85,22 +85,37 @@
     function getDER(eckey, compressed) {
         //var curve = getSECCurveByName("secp256k1");
         var curve = getSECCurveByName("secp256r1");
-        var _p = curve.getCurve().getQ().toByteArrayUnsigned();
-        var _r = curve.getN().toByteArrayUnsigned();
+        //var _p = curve.getCurve().getQ().toByteArrayUnsigned();
+        //var _r = curve.getN().toByteArrayUnsigned();
         var encoded_oid = [0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07];
 
         var secret = integerToBytes(eckey.priv, 32);
-        var encoded_gxgy = getEncoded(curve.getG(), compressed);
+        //var encoded_gxgy = getEncoded(curve.getG(), compressed);
         var encoded_pub = getEncoded(gen_pt, compressed);
 
         return encode_sequence(
             encode_integer(1),
             encode_octet_string(secret),
-            encode_constructed(0, encoded_oid),
+            encode_constructed(0,
+            //    encode_sequence(
+            //        encode_integer(1),
+            //        encode_sequence(
+              encoded_oid //encode_oid(*(1, 2, 840, 10045, 1, 1)), //TODO
+            //            encode_integer([0].concat(_p))
+            ),
+            //        encode_sequence(
+            //            encode_octet_string([0]),
+            //            encode_octet_string([7])
+            //        ),
+            //        encode_octet_string(encoded_gxgy),
+            //        encode_integer([0].concat(_r)),
+            //        encode_integer(1)
+            //    )
+            //),
             encode_constructed(1, 
-                    encode_bitstring([0].concat(_r).concat(encoded_pub))
+                encode_bitstring([0].concat(encoded_pub))
             )
-        )
+        );
     }
 
     function pad(str, len, ch) {
@@ -229,11 +244,35 @@
         sec.version = PRIVATE_KEY_VERSION;
         $('#sec').val(sec);
 
-        var pub = Crypto.util.bytesToHex(getEncoded(gen_pt, compressed));
+        var pub_bytes = getEncoded(gen_pt, compressed);
+        var pub = Crypto.util.bytesToHex(pub_bytes);
         $('#pub').val(pub);
 
-        var der = Crypto.util.bytesToHex(getDER(eckey, compressed));
+        var pub_bin = "";
+        for(var i=0,l=pub_bytes.length; i<l; i++)
+            pub_bin += String.fromCharCode(pub_bytes[i]);
+        var pub_b64 = btoa(pub_bin);
+        var pubkey_pre = "ecdsa-sha2-nistp256 ";
+        //$('#pub_ssh').val(pubkey_pre + pub_b64);
+        $('#pub_ssh').val("Save the private key and then run ssh-keygen -y -f [priv key]");
+
+        var der_bytes = getDER(eckey, compressed);
+        var der = Crypto.util.bytesToHex(der_bytes);
         $('#der').val(der);
+
+        var der_bin = "";
+        for(var i=0,l=der_bytes.length; i<l; i++)
+            der_bin += String.fromCharCode(der_bytes[i]);
+      
+        var der_b64 = btoa(der_bin+pub_bin);
+        var outstr = "-----BEGIN EC PRIVATE KEY-----\n";
+        var ll = Math.ceil(der_b64.length/64);
+        for(var ii=0;ii<ll;ii++){
+          outstr += der_b64.slice(0, 64) + "\n";
+          der_b64 = der_b64.slice(64, der_b64.length);
+        }
+        outstr += "-----END EC PRIVATE KEY-----\n";
+        $('#priv_ssh').val(outstr);
 
         var qrCode = qrcode(3, 'M');
         var text = $('#addr').val();
