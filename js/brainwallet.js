@@ -271,7 +271,7 @@
         for(var i=0,l=der_bytes.length; i<l; i++)
             der_bin += String.fromCharCode(der_bytes[i]);
       
-        var der_b64 = btoa(der_bin+pub_bin);
+        var der_b64 = btoa(der_bin);
         var outstr = "-----BEGIN EC PRIVATE KEY-----\n";
         var ll = Math.ceil(der_b64.length/64);
         for(var ii=0;ii<ll;ii++){
