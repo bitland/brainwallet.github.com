@@ -248,13 +248,20 @@
         var pub = Crypto.util.bytesToHex(pub_bytes);
         $('#pub').val(pub);
 
+        var pub_pre = "\x00\x00\x00\x13\x65\x63\x64\x73" +
+                      "\x61\x2d\x73\x68\x61\x32\x2d\x6e" +
+                      "\x69\x73\x74\x70\x32\x35\x36\x00" +
+                      "\x00\x00\x08\x6e\x69\x73\x74\x70" +
+                      "\x32\x35\x36\x00\x00\x00\x41";
+
         var pub_bin = "";
         for(var i=0,l=pub_bytes.length; i<l; i++)
             pub_bin += String.fromCharCode(pub_bytes[i]);
-        var pub_b64 = btoa(pub_bin);
+        var pub_ssh = pub_pre + pub_bin;
+        var pub_b64 = btoa(pub_ssh);
         var pubkey_pre = "ecdsa-sha2-nistp256 ";
-        //$('#pub_ssh').val(pubkey_pre + pub_b64);
-        $('#pub_ssh').val("Save the private key and then run ssh-keygen -y -f [priv key]");
+        $('#pub_ssh').val("# if below fails, run ssh-keygen -y -f [priv key]\n" + 
+                          pubkey_pre + pub_b64);
 
         var der_bytes = getDER(eckey, compressed);
         var der = Crypto.util.bytesToHex(der_bytes);
